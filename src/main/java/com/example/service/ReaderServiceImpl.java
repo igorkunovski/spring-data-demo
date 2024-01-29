@@ -1,7 +1,7 @@
 package com.example.service;
 
-import com.example.entity.BookEntity;
-import com.example.entity.ReaderEntity;
+import com.example.entity.Book;
+import com.example.entity.Reader;
 import com.example.repository.ReaderRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,52 +22,39 @@ public class ReaderServiceImpl implements ReaderService{
         this.readerRepository = readerRepository;
     }
 
-
     @PostConstruct
     public void generateReader() {
         for (int i = 100; i < 111; i++){
-            createReader("Reader #" + i);
+            save(new Reader("Reader #" + i));
         }
     }
 
     @Override
-    public List<ReaderEntity> getAllReaders() {
+    public List<Reader> findAll() {
         return readerRepository.findAll();
     }
 
     @Override
-    public ReaderEntity getReaderById(Long id) {
-        return readerRepository.findById(id).get();
+    public Optional<Reader> findById(Long id) {
+        return readerRepository.findById(id);
     }
 
     @Override
-    public void createReader(String name) {
-
-        if (findReaderByName(name)) {
-            throw new NoSuchElementException("Такой читатель уже введен \"" + name + "\"");
-
+    public void save(Reader reader) {
+        if (readerRepository.findAll().contains(reader)) {
+            throw new NoSuchElementException("Такой читатель уже введен \"" + reader + "\"");
         } else {
-            readerRepository.save(new ReaderEntity(name));
+            readerRepository.save(reader);
         }
     }
 
     @Override
-    public void deleteReaderById(Long id) {
+    public void deleteById(Long id) {
         readerRepository.deleteById(id);
     }
 
     @Override
-    public void addBook(ReaderEntity reader, BookEntity book) {
+    public void addBook(Reader reader, Book book) {
         readerRepository.findById(reader.getId()).get().addBook(book);
-    }
-
-    @Override
-    public boolean findReaderByName(String name) {
-        {
-            Optional<ReaderEntity> first = readerRepository.findAll().stream()
-                    .filter(reader -> reader.getName().equals(name))
-                    .findFirst();
-            return first.isPresent();
-        }
     }
 }

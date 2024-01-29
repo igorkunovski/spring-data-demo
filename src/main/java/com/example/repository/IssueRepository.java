@@ -1,8 +1,8 @@
 package com.example.repository;
 
-import com.example.entity.IssueEntity;
+import com.example.entity.Issue;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface IssueRepository extends JpaRepository<IssueEntity, Long> {
+public interface IssueRepository extends JpaRepository<Issue, Long> {
 
 }

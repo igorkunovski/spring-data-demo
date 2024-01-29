@@ -1,5 +1,6 @@
 application:
-  max-allowed-books: 3
+  reader:
+    max-allowed-books: 3
 
 spring:
   datasource:

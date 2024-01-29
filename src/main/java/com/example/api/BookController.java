@@ -1,16 +1,20 @@
 package com.example.api;
 
-import com.example.entity.BookEntity;
+import com.example.entity.Book;
 import com.example.service.BookService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @RestController
+@Tag(name="Book")
 @RequestMapping("/book")
 public class BookController {
 
@@ -22,45 +26,42 @@ public class BookController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<BookEntity>> getAllBooks() {
-        return new ResponseEntity<>(bookService.getAllBooks(), HttpStatus.OK);
+    @Operation(summary = "get all books", description = "load all books from repository")
+    public ResponseEntity<List<Book>> getAllBooks() {
+        return new ResponseEntity<>(bookService.findAll(), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookEntity> getBook(@PathVariable Long id) {
-        try {
-
-            BookEntity book = bookService.getBookById(id);
-            return new ResponseEntity<>(book, HttpStatus.OK);
-
-        } catch (NoSuchElementException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        }
+    @Operation(summary = "find by id", description = "search book from repository by its id")
+    @ApiResponse(responseCode = "200")
+    @ApiResponse(responseCode = "404")
+    public ResponseEntity<Book> findById(@PathVariable Long id) {
+        Optional<Book> book = bookService.findById(id);
+        return book.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<BookEntity> deleteBook(@PathVariable Long id) {
+    @Operation(summary = "delete book by id", description = "delete book from repository by book id")
+    @ApiResponse(responseCode = "200")
+    @ApiResponse(responseCode = "401")
+    public ResponseEntity<Book> deleteBook(@PathVariable Long id) {
 
-        try {
-
-            BookEntity book = bookService.getBookById(id);
-            bookService.deleteBook(id);
-            return new ResponseEntity<>(book, HttpStatus.NO_CONTENT);
-
-        }catch (NoSuchElementException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        }
+        Optional<Book> book = bookService.findById(id);
+        bookService.deleteById(id);
+        return book.map(ResponseEntity::ok).orElse(ResponseEntity.badRequest().build());
     }
 
     @PostMapping
-    public ResponseEntity<BookEntity> createBook(@RequestBody BookEntity book) {
-        try {
+    @Operation(summary = "create new book", description = "create new book and save it to repository")
+    @ApiResponse(responseCode = "201")
+    @ApiResponse(responseCode = "400")
+    public ResponseEntity<Book> createBook(@RequestBody Book book) {
 
-            bookService.createBook(book);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-
-        } catch (NoSuchElementException e) {
+        if (bookService.findAll().contains(book)) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        } else {
+            bookService.save(book);
         }
+        return new ResponseEntity<>(book, HttpStatus.CREATED);
     }
 }

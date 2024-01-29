@@ -2,6 +2,9 @@ package com.example.api;
 
 import com.example.entity.*;
 import com.example.service.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,9 +14,11 @@ import org.springframework.web.server.NotAcceptableStatusException;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Slf4j
 @RestController
+@Tag(name="Issue")
 @RequestMapping("/issue")
 public class IssueController {
 
@@ -33,7 +38,8 @@ public class IssueController {
      * @return возврат списка только открытых выдач
      */
     @GetMapping("/opened")
-    public ResponseEntity<List<IssueEntity>> getOpenedIssues() {
+    @Operation(summary = "get open issues", description = "load opened issues from repository")
+    public ResponseEntity<List<Issue>> getOpenedIssues() {
         return new ResponseEntity<>(issueService.getOpenedIssues(), HttpStatus.OK);
     }
 
@@ -43,8 +49,23 @@ public class IssueController {
      */
 
     @GetMapping("/all")
-    public ResponseEntity<List<IssueEntity>> getAllIssues() {
-        return new ResponseEntity<>(issueService.getAllIssues(), HttpStatus.OK);
+    @Operation(summary = "get all issues", description = "load all issues from repository")
+    public ResponseEntity<List<Issue>> getAllIssues() {
+        return new ResponseEntity<>(issueService.findAll(), HttpStatus.OK);
+    }
+
+    /**
+     *
+     * @param id - идентификатор выдачи
+     * @return - тело выдачи и статус запроса
+     */
+    @GetMapping("/{id}")
+    @Operation(summary = "find by id", description = "search issue from repository by its id")
+    @ApiResponse(responseCode = "200")
+    @ApiResponse(responseCode = "404")
+    public ResponseEntity<Issue> getIssue(@PathVariable long id) {
+        Optional<Issue> issue = issueService.findById(id);
+        return issue.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -52,26 +73,31 @@ public class IssueController {
      * @param request - тело запроса на добавление
      * @return - статус запроса и тело запроса
      */
+
     @PostMapping
-    public ResponseEntity<IssueEntity> issueBook(@RequestBody IssueRequestEntity request) {
+    @Operation(summary = "create new issue", description = "create new issue and save it to repository")
+    @ApiResponse(responseCode = "200")
+    @ApiResponse(responseCode = "400")
+    public ResponseEntity<Issue> issueBook(@RequestBody IssueRequest request) {
         log.info("Получен запрос на выдачу: readerId = {}, bookId = {}", request.getReaderId(), request.getBookId());
 
-        final IssueEntity issue;
+        final Issue issue;
 
         try {
             issue = issueService.issue(request);
 
             // добавление книги в список взятых книг читателя
-            ReaderEntity reader = readerService.getReaderById(request.getReaderId());
-            BookEntity book = bookService.getBookById(request.getBookId());
-            readerService.addBook(reader, book);
-            issueService.addNewOpenedIssue(issue);
-
+            Optional<Reader> reader = readerService.findById(request.getReaderId());
+            Optional<Book> book = bookService.findById(request.getBookId());
+            if (reader.isPresent() && book.isPresent()) {
+                readerService.addBook(reader.get(), book.get());
+                issueService.addNewOpenedIssue(issue);
+            }
         } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
         }
         catch (NotAcceptableStatusException e){
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         return ResponseEntity.status(HttpStatus.OK).body(issue);
     }
@@ -84,33 +110,23 @@ public class IssueController {
      * @return - статус запроса и тело запроса
      */
     @PutMapping("/{id}")
-    public ResponseEntity<IssueEntity> returnBook(@PathVariable long id) {
+    @Operation(summary = "close issue", description = "puts return date to issue and closes it, removes issue book from reader's list")
+    @ApiResponse(responseCode = "200")
+    @ApiResponse(responseCode = "400")
+    public ResponseEntity<Issue> returnBook(@PathVariable long id) {
 
-        IssueEntity issue = issueService.getIssueById(id);
-        BookEntity book = bookService.getBookById(issue.getBookId());
+        Optional<Issue> issue = issueService.findById(id);
+        if (issue.isPresent()) {
+            Optional<Book> book = bookService.findById(issue.get().getBookId());
 
-        // книга удаляется из списка взятых книг читателя
-        readerService.getReaderById(issue.getReaderId()).removeBook(book);
+            // книга удаляется из списка взятых книг читателя
+            readerService.findById(issue.get().getReaderId()).get().removeBook(book.get());
 
-        //добавляется время возврата книги
-        issueService.closeIssue(issue);
+            //добавляется время возврата книги
+            issueService.closeIssue(issue.get());
 
-        return ResponseEntity.status(HttpStatus.OK).body(issueService.getIssueById(id));
-    }
-
-    /**
-     *
-     * @param id - идентификатор выдачи
-     * @return - тело выдачи и статус запроса
-     */
-
-    @GetMapping("/{id}")
-    public ResponseEntity<IssueEntity> getIssue(@PathVariable long id) {
-        IssueEntity issue = issueService.getIssueById(id);
-        if (issue !=null) {
-            return new ResponseEntity<>(issue, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.OK).body(issueService.findById(id).get());
         }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
     }
 }

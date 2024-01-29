@@ -1,9 +1,9 @@
 package com.example.repository;
 
-import com.example.entity.BookEntity;
+import com.example.entity.Book;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 
-public interface BookRepository extends JpaRepository<BookEntity, Long> {
+public interface BookRepository extends JpaRepository<Book, Long> {
 
 }

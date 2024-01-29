@@ -1,6 +1,6 @@
 package com.example.entity;
 
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,33 +10,38 @@ import java.util.List;
 
 @Entity
 @Table(name = "readers")
+@Schema(name = "Reader")
 @Data
 @NoArgsConstructor
-public class ReaderEntity {
+public class Reader {
 
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @Schema(name = "Id of the reader")
     private long id;
 
     @Column(name = "booklist")
+    @Schema(name = "List of books the reader is holding")
     @OneToMany
-    private List<BookEntity> bookList;
+    private List<Book> bookList;
 
     @Column(name = "name")
+    @Schema(name = "Reader name")
     private String name;
 
 
-    public ReaderEntity(String name) {
+    public Reader(String name) {
         this.name = name;
         this.bookList = new ArrayList<>();
     }
 
-    public void addBook(BookEntity book){
+    public void addBook(Book book){
         bookList.add(book);
     }
 
-    public void removeBook(BookEntity book){
+    public void removeBook(Book book){
         bookList.remove(book);
     }
+
 }
 

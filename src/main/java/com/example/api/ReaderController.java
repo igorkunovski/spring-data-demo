@@ -1,18 +1,23 @@
 package com.example.api;
 
-
-import com.example.entity.IssueEntity;
-import com.example.entity.ReaderEntity;
+import com.example.entity.Issue;
+import com.example.entity.Reader;
 import com.example.service.IssueService;
 import com.example.service.ReaderService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @RestController
+@Tag(name="Reader")
 @RequestMapping("/reader")
 public class ReaderController {
 
@@ -26,24 +31,27 @@ public class ReaderController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<ReaderEntity>> getAllReaders() {
-        return new ResponseEntity<>(readerService.getAllReaders(), HttpStatus.OK);
+    @Operation(summary = "get all readers", description = "load all readers from repository")
+    public ResponseEntity<List<Reader>> getAllReaders() {
+        return new ResponseEntity<>(readerService.findAll(), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ReaderEntity> getReader(@PathVariable Long id) {
-        ReaderEntity reader= readerService.getReaderById(id);
-        if (reader !=null) {
-            return new ResponseEntity<>(readerService.getReaderById(id), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
+    @Operation(summary = "find by id", description = "search reader from repository by its id")
+    @ApiResponse(responseCode = "200")
+    @ApiResponse(responseCode = "404")
+    public ResponseEntity<Reader> getReader(@PathVariable Long id) {
+        Optional<Reader> reader= readerService.findById(id);
+        return reader.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id}/issue")
-    public ResponseEntity<List<IssueEntity>> getReaderIssueList(@PathVariable Long id) {
-        ReaderEntity reader= readerService.getReaderById(id);
-        if (reader !=null) {
+    @Operation(summary = "reader issues", description = "searches for reader's issued booklist")
+    @ApiResponse(responseCode = "200")
+    @ApiResponse(responseCode = "404")
+    public ResponseEntity<List<Issue>> getReaderIssueList(@PathVariable Long id) {
+        Optional<Reader> reader= readerService.findById(id);
+        if (reader.isPresent()){
             return new ResponseEntity<>(issueService.getUserIssues(id), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -51,19 +59,27 @@ public class ReaderController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ReaderEntity> deleteBook(@PathVariable Long id) {
-        ReaderEntity reader = readerService.getReaderById(id);
-        if (reader ==null) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        } else{
-            readerService.deleteReaderById(id);
-            return new ResponseEntity<>(reader, HttpStatus.NO_CONTENT);
-        }
+    @Operation(summary = "delete reader by id", description = "delete book from repository by its id")
+    @ApiResponse(responseCode = "200")
+    @ApiResponse(responseCode = "401")
+    public ResponseEntity<Reader> deleteReader(@PathVariable Long id) {
+
+        Optional<Reader> reader = readerService.findById(id);
+        readerService.deleteById(id);
+        return reader.map(ResponseEntity::ok).orElse(ResponseEntity.badRequest().build());
     }
 
     @PostMapping
-    public ResponseEntity<ReaderEntity> createReader(@RequestBody String name) {
-        readerService.createReader(name);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    @Operation(summary = "create new reader", description = "create new reader and save it to repository")
+    @ApiResponse(responseCode = "200")
+    @ApiResponse(responseCode = "401")
+    public ResponseEntity<Reader> createReader(@RequestBody Reader reader) {
+
+        try {
+            readerService.save(reader);
+            return new ResponseEntity<>(reader, HttpStatus.OK);
+        }catch (NoSuchElementException e){
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
     }
 }
