@@ -13,7 +13,7 @@ import java.util.List;
 @Schema(name = "Reader")
 @Data
 @NoArgsConstructor
-public class Reader {
+public class Reader{
 
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -29,7 +29,6 @@ public class Reader {
     @Schema(name = "Reader name")
     private String name;
 
-
     public Reader(String name) {
         this.name = name;
         this.bookList = new ArrayList<>();
@@ -42,6 +41,5 @@ public class Reader {
     public void removeBook(Book book){
         bookList.remove(book);
     }
-
 }
 

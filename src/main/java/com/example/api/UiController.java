@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Controller
-@RequestMapping("/ui")
+@RequestMapping("/")
 public class UiController {
 
     BookService bookService;
@@ -27,28 +27,33 @@ public class UiController {
         this.issueService = issueService;
     }
 
-    @GetMapping("/booklist")
+    @GetMapping
+    public String all() {
+        return "index";
+    }
+
+    @GetMapping("ui/booklist")
     public String booklist(Model model) {
         List<Book> books = bookService.findAll();
         model.addAttribute("books", books);
         return "booklist";
     }
 
-    @GetMapping("/readerlist")
+    @GetMapping("ui/readerlist")
     public String readerlist(Model model) {
         List<Reader> readers = readerService.findAll();
         model.addAttribute("readers", readers);
         return "readerlist";
     }
 
-    @GetMapping("/issuetable")
+    @GetMapping("ui/issuetable")
     public String issuetable(Model model) {
         List<Issue> issues = issueService.findAll();
         model.addAttribute("issues", issues);
         return "issuetable";
     }
 
-    @GetMapping("/reader/{id}")
+    @GetMapping("ui/reader/{id}")
     public String readerbooks(@PathVariable Long id, Model model) {
         Optional<Reader> reader = readerService.findById(id);
         if (reader.isPresent()) {
