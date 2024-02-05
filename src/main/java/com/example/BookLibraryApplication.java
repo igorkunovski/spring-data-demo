@@ -1,20 +1,29 @@
 package com.example;
 
-import com.example.repository.UserRepository;
-import com.example.secutity.Role;
-import com.example.secutity.User;
+import com.example.aspect.TestClassAOP;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
+import java.io.FileNotFoundException;
 
+@Slf4j
 @SpringBootApplication
 public class BookLibraryApplication {
 
-	public static void main(String[] args) {
-		UserRepository userRepository = SpringApplication.run(BookLibraryApplication.class, args).getBean(UserRepository.class);
+	public static void main(String[] args) throws InterruptedException, FileNotFoundException {
 
-		userRepository.save(new User("admin", "admin", Role.ADMIN));
-		userRepository.save(new User("reader", "reader", Role.READER));
-		userRepository.save(new User("dev", "dev", Role.DEVELOPER));
+		ConfigurableApplicationContext context = SpringApplication.run(BookLibraryApplication.class, args);
+		TestClassAOP testClassAOP = context.getBean(TestClassAOP.class);
+
+		String result = testClassAOP.method1("AaA");
+		log.error(result);
+
+
+		testClassAOP.method4();
+		testClassAOP.method2();
+//		testClassAOP.method3();
+
 	}
 }
