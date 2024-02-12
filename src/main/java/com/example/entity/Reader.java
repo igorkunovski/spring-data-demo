@@ -2,6 +2,7 @@ package com.example.entity;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -18,7 +19,7 @@ public class Reader{
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     @Schema(name = "Id of the reader")
-    private long id;
+    private Long id;
 
     @Column(name = "booklist")
     @Schema(name = "List of books the reader is holding")
@@ -30,6 +31,13 @@ public class Reader{
     private String name;
 
     public Reader(String name) {
+        this.name = name;
+        this.bookList = new ArrayList<>();
+    }
+
+    //for testing
+    public Reader(Long id, String name) {
+        this.id = id;
         this.name = name;
         this.bookList = new ArrayList<>();
     }

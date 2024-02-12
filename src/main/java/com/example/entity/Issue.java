@@ -17,15 +17,15 @@ public class Issue {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Schema(name = "Id of the issue")
-    private long id;
+    private Long id;
 
     @Column(name = "readerId")
     @Schema(name = "Id of the reader")
-    private long readerId;
+    private Long readerId;
 
     @Column(name = "bookId")
     @Schema(name = "Id of the book")
-    private long bookId;
+    private Long bookId;
     @Column(name = "issueDate")
     @Schema(name = "Issue generation date")
     private LocalDateTime issueDate;
@@ -34,10 +34,19 @@ public class Issue {
     private LocalDateTime returnedDate;
 
 
-    public Issue(long readerId, long bookId) {
+    public Issue(Long readerId, Long bookId) {
         this.readerId = readerId;
         this.bookId = bookId;
 
+        this.issueDate = LocalDateTime.now().withNano(0);
+        this.returnedDate = null;
+    }
+
+    //for testing
+    public Issue(Long id, Long readerId, Long bookId) {
+        this.id = id;
+        this.readerId = readerId;
+        this.bookId = bookId;
         this.issueDate = LocalDateTime.now().withNano(0);
         this.returnedDate = null;
     }

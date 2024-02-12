@@ -18,7 +18,7 @@ import java.util.Optional;
 
 @RestController
 @Tag(name="Reader")
-@RequestMapping("/reader")
+@RequestMapping("/api/reader")
 public class ReaderController {
 
     @Autowired
@@ -30,7 +30,7 @@ public class ReaderController {
         this.issueService = issueService;
     }
 
-    @GetMapping("/all")
+    @GetMapping
     @Operation(summary = "get all readers", description = "load all readers from repository")
     public ResponseEntity<List<Reader>> getAllReaders() {
         return new ResponseEntity<>(readerService.findAll(), HttpStatus.OK);
@@ -65,19 +65,22 @@ public class ReaderController {
     public ResponseEntity<Reader> deleteReader(@PathVariable Long id) {
 
         Optional<Reader> reader = readerService.findById(id);
-        readerService.deleteById(id);
-        return reader.map(ResponseEntity::ok).orElse(ResponseEntity.badRequest().build());
+        if (reader.isPresent()) {
+            readerService.deleteById(id);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
     @PostMapping
     @Operation(summary = "create new reader", description = "create new reader and save it to repository")
-    @ApiResponse(responseCode = "200")
+    @ApiResponse(responseCode = "201")
     @ApiResponse(responseCode = "401")
     public ResponseEntity<Reader> createReader(@RequestBody Reader reader) {
 
         try {
             readerService.save(reader);
-            return new ResponseEntity<>(reader, HttpStatus.OK);
+            return new ResponseEntity<>(reader, HttpStatus.CREATED);
         }catch (NoSuchElementException e){
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }

@@ -19,7 +19,7 @@ import java.util.Optional;
 @Slf4j
 @RestController
 @Tag(name="Issue")
-@RequestMapping("/issue")
+@RequestMapping("/api/issue")
 public class IssueController {
 
     private final IssueService issueService;
@@ -99,7 +99,7 @@ public class IssueController {
         catch (NotAcceptableStatusException e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        return ResponseEntity.status(HttpStatus.OK).body(issue);
+        return ResponseEntity.status(HttpStatus.CREATED).body(issue);
     }
 
     /**

@@ -14,15 +14,16 @@ public class BookLibraryApplication {
 
 	public static void main(String[] args) throws InterruptedException, FileNotFoundException {
 
-		ConfigurableApplicationContext context = SpringApplication.run(BookLibraryApplication.class, args);
-		TestClassAOP testClassAOP = context.getBean(TestClassAOP.class);
+//		ConfigurableApplicationContext context =
+		SpringApplication.run(BookLibraryApplication.class, args);
+//		TestClassAOP testClassAOP = context.getBean(TestClassAOP.class);
+//
+//		String result = testClassAOP.method1("AaA");
+//		log.error(result);
 
-		String result = testClassAOP.method1("AaA");
-		log.error(result);
 
-
-		testClassAOP.method4();
-		testClassAOP.method2();
+//		testClassAOP.method4();
+//		testClassAOP.method2();
 //		testClassAOP.method3();
 
 	}

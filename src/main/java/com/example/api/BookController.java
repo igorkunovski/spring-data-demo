@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @RestController
 @Tag(name="Book")
-@RequestMapping("/book")
+@RequestMapping("api/book")
 public class BookController {
 
     private final BookService bookService;
@@ -25,7 +25,7 @@ public class BookController {
         this.bookService = bookService;
     }
 
-    @GetMapping("/all")
+    @GetMapping
     @Operation(summary = "get all books", description = "load all books from repository")
     public ResponseEntity<List<Book>> getAllBooks() {
         return new ResponseEntity<>(bookService.findAll(), HttpStatus.OK);
